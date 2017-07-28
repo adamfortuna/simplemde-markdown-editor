@@ -8,6 +8,7 @@ require("codemirror/mode/markdown/markdown.js");
 require("codemirror/addon/mode/overlay.js");
 require("codemirror/addon/display/placeholder.js");
 require("codemirror/addon/selection/mark-selection.js");
+require("codemirror/addon/hint/show-hint.js");
 require("codemirror/mode/gfm/gfm.js");
 require("codemirror/mode/xml/xml.js");
 var CodeMirrorSpellChecker = require("codemirror-spell-checker");
@@ -1479,7 +1480,7 @@ SimpleMDE.prototype.render = function(el) {
 		mode.gitHubSpice = false;
 	}
 
-	this.codemirror = CodeMirror.fromTextArea(el, {
+	var codeMirrorOptions = {
 		mode: mode,
 		backdrop: backdrop,
 		theme: "paper",
@@ -1493,7 +1494,16 @@ SimpleMDE.prototype.render = function(el) {
 		allowDropFileTypes: ["text/plain"],
 		placeholder: options.placeholder || el.getAttribute("placeholder") || "",
 		styleSelectedText: (options.styleSelectedText != undefined) ? options.styleSelectedText : true
-	});
+	};
+
+	// Use a `codemirror` option to pass things directly to CodeMirror, bypassing
+	// all settings
+	options.codemirror = options.codemirror || {};
+	var combinedOptions = Object.assign({}, codeMirrorOptions, options.codemirror);
+	if(options.codemirror.extraKeys) {
+		combinedOptions.extraKeys = Object.assign({}, keyMaps, options.codemirror.extraKeys);
+	}
+	this.codemirror = CodeMirror.fromTextArea(el, combinedOptions);
 
 	if(options.forceSync === true) {
 		var cm = this.codemirror;
@@ -2025,4 +2035,5 @@ SimpleMDE.prototype.toTextArea = function() {
 	}
 };
 
+SimpleMDE.CodeMirror = CodeMirror;
 module.exports = SimpleMDE;
